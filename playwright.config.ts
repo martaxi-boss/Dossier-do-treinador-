@@ -13,7 +13,7 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } }],
+  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'], channel: 'chrome', viewport: { width: 1440, height: 900 } } }],
   webServer: {
     command: 'pnpm dev --host 127.0.0.1 --port 4175 --strictPort',
     url: 'http://127.0.0.1:4175',
