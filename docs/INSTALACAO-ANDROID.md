@@ -1,6 +1,6 @@
 # Instalar a APK de desenvolvimento no Android
 
-1. Abrir a execução [Android #42266875024](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/runs/42266875024) com sessão GitHub iniciada.
+1. Abrir a execução [Android #42270261244](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/runs/42270261244) com sessão GitHub iniciada.
 2. Descer até **Artifacts** e abrir **campolab-android-debug-apk** (é um ZIP).
 3. Extrair o ficheiro **app-debug.apk** do ZIP no telemóvel ou num computador.
 4. Instalar o APK no Android apenas num dispositivo de testes autorizado. O Android poderá pedir permissão para instalar apps provenientes desta fonte.

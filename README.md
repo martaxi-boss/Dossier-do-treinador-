@@ -9,29 +9,37 @@
 ## O que já existe no protótipo
 - **Quadro tático:** 22 jogadores e bola, arrastamento com toque/rato, 4 formações, setas e curvas com ponto central de correção, desenho livre, apagar e desfazer/refazer. Zoom 100–250% e modo Navegar para telemóvel.
 - **Animação:** gravar sucessivos passos, voltar a um passo anterior, corrigir posições e atualizar esse mesmo passo sem o duplicar; reproduzir movimentos entre posições.
-- **Biblioteca de exercícios:** guardar até 50 jogadas locais com categorias, abrir, atualizar, duplicar e eliminar. Cada exercício guarda uma cópia independente do quadro.\n- **Partilha:** PNG do quadro e importação/exportação de jogadas JSON; guardar automaticamente no dispositivo.
+- **Biblioteca de exercícios:** guardar até 50 jogadas locais com categorias, abrir, atualizar, duplicar e eliminar. Cada exercício guarda uma cópia independente do quadro.
+- **Partilha:** PNG do quadro e importação/exportação de jogadas JSON; guardar automaticamente no dispositivo.
 - **Painel técnico:** navegação, dados do clube, plantel/disponibilidade, sessões, jogos, indicadores e exportação JSON do dossiê.
 - **Interface:** responsive, modo ecrã inteiro para apresentação em TV/quadro com navegador e identidade visual própria.
 
 **Limites atuais:** sem autenticação, backend, sincronização entre dispositivos, relatório PDF, contas de treinador, exportação vídeo, integração com hardware específico, assinatura de release, testes num aparelho físico ou distribuição Windows. Dados de exemplo; dados no `localStorage` do dispositivo. Não introduzir dados reais de crianças antes da implementação de privacidade/segurança.
 
 ## Código e execução
+
 ```text
 src/
-  components/TacticalBoard.tsx  editor tático Konva
-  domain/model.ts             entidades, geometria e animação
-  domain/model.test.ts        testes unitários
-  services/local.ts           persistência/importação/exportação local
-  App.tsx                     painéis técnico e gestão
+  App.tsx                     painel técnico, plantel, treinos e jogos
+  components/TacticalBoard.tsx editor Konva, zoom, passos e biblioteca
+  domain/model.ts             entidades e geometria
+  domain/editor.ts            curvas e gravação/correção de passos
+  domain/library.ts           biblioteca de exercícios
+  domain/*.test.ts            testes unitários
+  services/local.ts           persistência local, importação/exportação
   styles.css                  design responsivo
+tests/e2e/tactics.spec.ts     testes no Chrome para rato, toque, zoom e biblioteca
+playwright.config.ts          configuração de teste de navegador
 .github/workflows/
-  quality.yml                 TS + Vitest + build web
+  quality.yml                 TypeScript, Vitest, build web e testes Chrome
   android-apk.yml             APK debug gerada num runner GitHub
 docs/
   ARQUITETURA.md
   PLANO.md
-  REFERENCIAS_OPEN_SOURCE.md
+  QUADRO-INTERATIVO.md
+  INSTALACAO-ANDROID.md
   CRITERIOS-DE-QUALIDADE.md
+  REFERENCIAS_OPEN_SOURCE.md
 ```
 
 Pré-requisitos de desenvolvimento: **Node 22+** e **pnpm 10**. Para correr a versão web no computador:
@@ -56,4 +64,4 @@ Um repositório independente e, caso seja instalado na VPS no futuro, uma pasta 
 ## Referências e propriedade
 [React Konva](https://github.com/konvajs/react-konva), [Konva](https://github.com/konvajs/konva) e [Capacitor](https://github.com/ionic-team/capacitor) são dependências de código aberto com licença MIT. [Calcio Chigi](https://github.com/marcocipriani/calcio-chigi) e [Soccer Tactics Board](https://github.com/yynakayama/soccer-tactics-board) foram estudados como referências de funcionalidades, **não copiados**.
 
-O repositório é público, mas **não foi concedida licença de redistribuição do código original**; essa decisão é do proprietário. Ver [arquitetura](docs/ARQUITETURA.md), [plano](docs/PLANO.md), [critérios de qualidade](docs/CRITERIOS-DE-QUALIDADE.md) e [pesquisa](docs/REFERENCIAS_OPEN_SOURCE.md).
+O repositório é público, mas **não foi concedida licença de redistribuição do código original**; essa decisão é do proprietário. Ver [arquitetura](docs/ARQUITETURA.md), [plano](docs/PLANO.md), [quadros interativos](docs/QUADRO-INTERATIVO.md), [critérios de qualidade](docs/CRITERIOS-DE-QUALIDADE.md) e [pesquisa](docs/REFERENCIAS_OPEN_SOURCE.md).

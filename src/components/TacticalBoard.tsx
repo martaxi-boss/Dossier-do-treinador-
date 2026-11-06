@@ -486,7 +486,7 @@ export default function TacticalBoard() {
               <span>{exercise.board.frames.length} passos · {exercise.board.arrows.length} trajetórias</span>
             </div>
             <div className="exercise-buttons">
-              <button type="button" className="button-subtle" title={'Abrir exercício ' + exercise.title} onClick={() => openExercise(exercise)}><FolderOpen size={16} /> Abrir</button>
+              <button type="button" className="button-subtle" title={'Abrir exercício ' + exercise.title} aria-label={'Abrir exercício ' + exercise.title} onClick={() => openExercise(exercise)}><FolderOpen size={16} /> Abrir</button>
               <button type="button" className="icon-button" title={'Duplicar exercício ' + exercise.title} aria-label={'Duplicar exercício ' + exercise.title} onClick={() => duplicateExercise(exercise)}><Copy size={16} /></button>
               <button type="button" className="icon-button danger" title={'Eliminar exercício ' + exercise.title} aria-label={'Eliminar exercício ' + exercise.title} onClick={() => removeExercise(exercise)}><Trash2 size={16} /></button>
             </div>

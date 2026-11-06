@@ -11,3 +11,7 @@ coverage/
 *.apk
 *.aab
 src-tauri/target/
+
+test-results/
+playwright-report/
+blob-report/

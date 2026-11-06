@@ -18,7 +18,8 @@ export function isSavedExercise(value: unknown): value is SavedExercise {
   return typeof item.id === 'string' && item.id.length > 0 && item.id.length <= 80
     && typeof item.title === 'string' && item.title.length <= 100
     && EXERCISE_CATEGORIES.includes(item.category as ExerciseCategory)
-    && typeof item.createdAt === 'string' && typeof item.updatedAt === 'string'
+    && typeof item.createdAt === 'string' && Number.isFinite(Date.parse(item.createdAt))
+    && typeof item.updatedAt === 'string' && Number.isFinite(Date.parse(item.updatedAt))
     && isBoard(item.board);
 }
 

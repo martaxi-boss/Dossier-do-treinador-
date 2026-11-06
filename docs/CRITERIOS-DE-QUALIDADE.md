@@ -1,8 +1,8 @@
 # Aceitação e testes
 
 1. Um treinador consegue mover um jogador com um dedo sem mover os restantes, alterar a jogada, desfazer e refazer.
-2. Com a ferramenta seta, traça um movimento, seleciona-o e ajusta início/fim; também elimina o desenho errado.
-3. Guarda passos táticos, reproduz a sequência, interrompe, volta à edição e recupera a jogada após recarregar.
+2. Com as ferramentas Movimento e Curva, traça uma trajetória, corrige início/fim e o ponto central da curva; também elimina o desenho errado.
+3. Guarda passos táticos, atualiza um passo anterior sem o duplicar, reproduz a sequência, interrompe, volta à edição e recupera a jogada após recarregar.
 4. Exporta um JSON de backup que pode ser importado sem corromper o projeto.
 5. A interface adapta-se a smartphone e computador; os botões de ações importantes são grandes o suficiente para toque.
 6. Nenhum controlo visível é fictício; recursos indisponíveis ficam na documentação, não como botões.
