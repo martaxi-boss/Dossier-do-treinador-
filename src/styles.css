@@ -159,11 +159,16 @@ input:focus, select:focus, textarea:focus { border-color: #4eaa85; box-shadow: 0
 .color-swatch.on { box-shadow: 0 0 0 2px #387c5c; }
 .pitch-shell { background: #10252b; padding: 12px; position: relative; border-radius: 0 0 15px 15px; }
 .board-scroll { overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-width: thin; }
-.board-canvas { width: 100%; min-width: 780px; border-radius: 11px; overflow: hidden; line-height: 0; touch-action: none; }
+.board-canvas { min-width: 0; border-radius: 11px; overflow: hidden; line-height: 0; touch-action: none; }
 .board-canvas canvas { touch-action: none; }
+.board-canvas.allow-pan, .board-canvas.allow-pan canvas { touch-action: pan-x !important; }
+.zoom-label { min-width: 48px; border: 1px solid #dbe7e2; border-radius: 9px; padding: 10px 6px; background: #f7faf7; color: #355f50; font-size: 11px; font-weight: 800; }
+.zoom-label:hover { background: #ecf5e9; }
+.frame-chip.active { border-color: #659c71; background: #e7f5dc; box-shadow: 0 0 0 2px #cae7b7; color: #254c30; }
 .fullscreen-btn { position: absolute; bottom: 23px; right: 23px; z-index: 5; border: 1px solid #ffffff44; background: #0a2028cd; color: white; border-radius: 9px; padding: 10px 13px; display: inline-flex; align-items: center; gap: 9px; font-size: 11px; font-weight: 760; }
 .pitch-shell:fullscreen { display: grid; align-content: center; padding: 18px; background: #0b1d23; }
-.pitch-shell:fullscreen .board-canvas { width: min(calc(100vw - 36px), calc((100vh - 100px) * 1.6923)); margin: auto; }
+.pitch-shell:fullscreen .board-canvas { margin: auto; }
+.pitch-shell:fullscreen .board-scroll { max-height: calc(100vh - 70px); }
 .helper-text { font-size: 12px; margin: 12px 2px 25px; color: #627e71; line-height: 1.5; }
 .timeline-section { background: #fff; border-radius: var(--radius); border: 1px solid var(--border); padding: 23px; margin-bottom: 17px; }
 .timeline-title { display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
@@ -262,7 +267,10 @@ td strong { color: #1d3439; }
   .tool-button span { font-size: 10px; }
   .timeline-section { padding: 15px; }
   .timeline-actions { width: 100%; }
-  .timeline-actions button { flex: 1; }
+  .timeline-actions button { flex: 1 1 125px; }
+  .tool-group.compact { width: 100%; }
+  .tool-group.compact .color-swatch:first-of-type { margin-left: auto; }
+  .board-scroll { border-radius: 9px; }
   .export-bar { padding: 14px; }
   .export-actions { width: 100%; }
   .export-actions button { flex: 1; }
