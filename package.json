@@ -11,7 +11,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "check": "tsc --noEmit -p tsconfig.app.json",
-    "test": "vitest run",
+    "test": "vitest run src",
     "android:add": "cap add android",
     "android:sync": "npm run build && cap sync android",
     "e2e": "playwright test"
