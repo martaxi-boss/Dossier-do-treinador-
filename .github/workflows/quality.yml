@@ -1,0 +1,32 @@
+name: Quality - TypeScript, tests and web build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install project dependencies
+        run: npm install --no-audit --no-fund
+      - name: Static TypeScript validation
+        run: npm run check
+      - name: Unit tests
+        run: npm test
+      - name: Production web build
+        run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: campolab-web-build
+          path: dist/
+          if-no-files-found: error
