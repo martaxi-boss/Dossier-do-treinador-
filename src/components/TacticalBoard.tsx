@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Arrow, Circle, Group, Layer, Line, Rect, Stage, Text } from 'react-konva';
 import type Konva from 'konva';
 import {
-  ArrowUpRight, Brush, Eraser, Hand, ImageDown, Maximize2,
+  ArrowUpRight, BookOpen, Brush, Copy, Eraser, FolderOpen, Hand, ImageDown, Maximize2,
   MousePointer2, Move, Pause, Play, Plus, Redo2, RotateCcw,
   Save, Trash2, Undo2, Upload, Waves, ZoomIn, ZoomOut,
 } from 'lucide-react';
@@ -10,7 +10,11 @@ import {
   Board, Point, FORMATIONS, Formation, PITCH, TacticalArrow, TacticalStroke,
   captureFrame, clampPoint, createBoard, interpolateFrames, uid,
 } from '../domain/model';
-import { downloadFile, importBoardFile, loadBoard, saveBoard } from '../services/local';
+import { downloadFile, importBoardFile, loadBoard, loadExercises, saveBoard, saveExercises } from '../services/local';
+import {
+  EXERCISE_CATEGORIES, findExercises, makeExercise, overwriteExercise,
+} from '../domain/library';
+import type { ExerciseCategory, SavedExercise } from '../domain/library';
 import {
   applyFrame as applyRecordedFrame, changeTrajectoryHandle, createTrajectory, deleteFrame, overwriteFrame,
   trajectoryPoints,
@@ -69,6 +73,11 @@ export default function TacticalBoard() {
   const [selectedArrow, setSelectedArrow] = useState<string | null>(null);
   const [draggingArrow, setDraggingArrow] = useState<TacticalArrow | null>(null);
   const [selectedFrame, setSelectedFrame] = useState<number | null>(null);
+  const [exercises, setExercises] = useState<SavedExercise[]>(loadExercises);
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [exerciseCategory, setExerciseCategory] = useState<ExerciseCategory>('Tática');
+  const [exerciseSearch, setExerciseSearch] = useState('');
+  const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null);
   const [inkColor, setInkColor] = useState('#f3bd4b');
   const [playing, setPlaying] = useState(false);
   const [preview, setPreview] = useState<Preview | null>(null);
@@ -80,6 +89,9 @@ export default function TacticalBoard() {
   const draftRef = useRef<Draft | null>(null);
 
   useEffect(() => { saveBoard(board); }, [board]);
+  useEffect(() => {
+    if (!saveExercises(exercises)) setNotice('Sem espaço para guardar a biblioteca. Exporta uma cópia da jogada e liberta armazenamento.');
+  }, [exercises]);
   useEffect(() => {
     const target = scrollContainer.current;
     if (!target) return;
@@ -220,6 +232,7 @@ export default function TacticalBoard() {
     commit({ ...createBoard(formation), name: board.name });
     setPreview(null);
     setSelectedArrow(null);
+    setActiveExerciseId(null);
   };
   const recordFrame = () => {
     if (board.frames.length >= 20) { setNotice('Máximo de 20 passos nesta versão.'); return; }
@@ -250,6 +263,41 @@ export default function TacticalBoard() {
     setSelectedFrame(null);
     setNotice('Passo eliminado. Podes desfazer para o recuperar.');
   };
+  const saveNewExercise = () => {
+    if (exercises.length >= 50) { setNotice('Limite de 50 exercícios locais. Exporta ou apaga um antes de continuar.'); return; }
+    const next = makeExercise(board, exerciseCategory);
+    setExercises(current => [next, ...current]);
+    setActiveExerciseId(next.id);
+    setLibraryOpen(true);
+    setNotice('Exercício guardado na biblioteca deste dispositivo.');
+  };
+  const saveCurrentExercise = () => {
+    if (!activeExerciseId) { saveNewExercise(); return; }
+    setExercises(current => overwriteExercise(current, activeExerciseId, board));
+    setNotice('Exercício atualizado na biblioteca sem criar cópias.');
+  };
+  const openExercise = (exercise: SavedExercise) => {
+    if (!window.confirm('Abrir este exercício substitui o quadro atual. Exporta o quadro se quiseres guardar uma cópia. Continuar?')) return;
+    commit(structuredClone(exercise.board));
+    setActiveExerciseId(exercise.id);
+    setExerciseCategory(exercise.category);
+    setSelectedArrow(null);
+    setSelectedFrame(null);
+    setDraggingArrow(null);
+    setNotice('Exercício carregado. Altera a jogada e guarda as alterações quando estiver pronta.');
+  };
+  const duplicateExercise = (exercise: SavedExercise) => {
+    if (exercises.length >= 50) { setNotice('Limite de 50 exercícios locais.'); return; }
+    const duplicate = makeExercise({ ...structuredClone(exercise.board), name: exercise.title + ' (cópia)' }, exercise.category);
+    setExercises(current => [duplicate, ...current]);
+    setNotice('Cópia independente criada na biblioteca.');
+  };
+  const removeExercise = (exercise: SavedExercise) => {
+    if (!window.confirm('Eliminar definitivamente o exercício ' + exercise.title + ' desta biblioteca local?')) return;
+    setExercises(current => current.filter(item => item.id !== exercise.id));
+    if (activeExerciseId === exercise.id) setActiveExerciseId(null);
+    setNotice('Exercício eliminado da biblioteca local.');
+  };
   const exportJSON = () => downloadFile('jogada-campolab.json', JSON.stringify(board, null, 2), 'application/json');
   const exportPNG = () => {
     const data = stage.current?.toDataURL({ pixelRatio: 2 });
@@ -263,6 +311,7 @@ export default function TacticalBoard() {
     try {
       const imported = await importBoardFile(file);
       commit(imported);
+      setActiveExerciseId(null);
       setSelectedFrame(null);
       setSelectedArrow(null);
       setDraggingArrow(null);
@@ -410,6 +459,42 @@ export default function TacticalBoard() {
         {selectedFrame !== null && <button type="button" className="frame-remove" onClick={removeSelectedFrame} disabled={playing} title="Eliminar passo selecionado"><Trash2 size={15} /> Eliminar passo</button>}
       </div>
     </div>
+    <section className="library-section">
+      <div className="library-heading">
+        <div><p className="eyebrow">EXERCÍCIOS REUTILIZÁVEIS</p><h3>Biblioteca de jogadas</h3><p className="muted small">Guarda versões independentes de exercícios táticos, volta a abri-las e cria cópias para novos treinos.</p></div>
+        <button type="button" className="button-subtle" aria-expanded={libraryOpen} onClick={() => setLibraryOpen(value => !value)}><BookOpen size={17} /> Biblioteca ({exercises.length})</button>
+      </div>
+      <div className="library-actions">
+        <label className="labelled-input">Categoria
+          <select value={exerciseCategory} onChange={event => setExerciseCategory(event.target.value as ExerciseCategory)}>
+            {EXERCISE_CATEGORIES.map(category => <option key={category}>{category}</option>)}
+          </select>
+        </label>
+        <button type="button" className="button-primary" onClick={saveNewExercise} disabled={playing}><Plus size={16} /> Guardar como novo</button>
+        <button type="button" className="button-subtle" onClick={saveCurrentExercise} disabled={!activeExerciseId || playing}><Save size={16} /> Atualizar exercício</button>
+      </div>
+      {libraryOpen && <div className="library-browser">
+        <label className="labelled-input">Pesquisar exercícios guardados
+          <input type="search" value={exerciseSearch} onChange={event => setExerciseSearch(event.target.value)} placeholder="Nome ou palavra-chave" />
+        </label>
+        <div className="library-cards">
+          {findExercises(exercises, exerciseSearch).map(exercise => <article className={'library-entry ' + (activeExerciseId === exercise.id ? 'active' : '')} key={exercise.id}>
+            <div className="exercise-icon"><BookOpen size={20} /></div>
+            <div className="exercise-description">
+              <strong>{exercise.title}</strong>
+              <small>{exercise.category} · {new Date(exercise.updatedAt).toLocaleDateString('pt-PT')}</small>
+              <span>{exercise.board.frames.length} passos · {exercise.board.arrows.length} trajetórias</span>
+            </div>
+            <div className="exercise-buttons">
+              <button type="button" className="button-subtle" title={'Abrir exercício ' + exercise.title} onClick={() => openExercise(exercise)}><FolderOpen size={16} /> Abrir</button>
+              <button type="button" className="icon-button" title={'Duplicar exercício ' + exercise.title} aria-label={'Duplicar exercício ' + exercise.title} onClick={() => duplicateExercise(exercise)}><Copy size={16} /></button>
+              <button type="button" className="icon-button danger" title={'Eliminar exercício ' + exercise.title} aria-label={'Eliminar exercício ' + exercise.title} onClick={() => removeExercise(exercise)}><Trash2 size={16} /></button>
+            </div>
+          </article>)}
+          {!findExercises(exercises, exerciseSearch).length && <p className="empty-frames">Nenhum exercício corresponde à pesquisa. Guarda uma jogada para iniciar a biblioteca.</p>}
+        </div>
+      </div>}
+    </section>
     <div className="export-bar">
       <div className="export-description"><Save size={19} /><span><strong>A tua jogada é guardada automaticamente.</strong><small>Exporta uma cópia para não dependeres deste dispositivo.</small></span></div>
       <div className="export-actions">
