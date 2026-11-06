@@ -1,7 +1,9 @@
 import { Board, Dossier, demoDossier, isBoard } from '../domain/model';
+import { SavedExercise, isSavedExercise } from '../domain/library';
 
 const BOARD_KEY = 'campolab.board.v1';
 const DOSSIER_KEY = 'campolab.dossier.v1';
+const EXERCISES_KEY = 'campolab.exercises.v1';
 
 export function loadBoard(): Board | undefined {
   try {
@@ -41,4 +43,20 @@ export async function importBoardFile(file: File): Promise<Board> {
   try { data = JSON.parse(await file.text()); } catch { throw new Error('O ficheiro não contém JSON válido.'); }
   if (!isBoard(data)) throw new Error('Este ficheiro não contém uma jogada CampoLab válida.');
   return data;
+}
+
+/** Separate snapshots of reusable tactical exercises (maximum 50 per device). */
+export function loadExercises(): SavedExercise[] {
+  try {
+    const raw = localStorage.getItem(EXERCISES_KEY);
+    if (!raw || raw.length > 15 * 1024 * 1024) return [];
+    const values: unknown = JSON.parse(raw);
+    return Array.isArray(values) ? values.slice(0, 50).filter(isSavedExercise) : [];
+  } catch { return []; }
+}
+export function saveExercises(values: SavedExercise[]): boolean {
+  try {
+    localStorage.setItem(EXERCISES_KEY, JSON.stringify(values.slice(0, 50)));
+    return true;
+  } catch { return false; }
 }
