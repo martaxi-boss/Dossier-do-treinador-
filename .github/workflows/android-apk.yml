@@ -29,7 +29,11 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - uses: android-actions/setup-android@v3
+      # GitHub ubuntu-latest already includes Android SDK; avoid downloading obsolete SDK 'tools'.
+      - name: Verify preinstalled Android SDK
+        run: |
+          test -d "$ANDROID_HOME"
+          echo "Android SDK from runner: $ANDROID_HOME"
       - name: Install dependencies and build frontend
         run: |
           pnpm install --no-frozen-lockfile
