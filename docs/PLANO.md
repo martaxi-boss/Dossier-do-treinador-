@@ -17,10 +17,10 @@
 - [x] Gravar e reproduzir passos de movimento
 - [x] Exportar PNG e apresentar em ecrã inteiro
 - [x] Testes unitários de geometria, formação e interpolação
-- [ ] Testes de regressão UI automatizados (rato, touch, caneta)
+- [x] Testes automatizados Chrome: arrastar, editar curvas, corrigir passos, zoom e biblioteca ([#42270087686](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/runs/42270087686), 4 testes, extensão em validação)\n- [ ] Certificar testes de caneta ativa em hardware físico
 - [ ] Testes reais em smartphone, tablet e monitor grande
-- [ ] Rotas curvas editáveis, pontos múltiplos, áreas táticas e medidas
-- [ ] Biblioteca organizada de exercícios reutilizáveis e versões de jogada
+- [x] Curvas editáveis com ponto de controlo, zoom e navegação no campo\n- [ ] Trajetórias com múltiplos nós, áreas táticas e medição/distâncias
+- [x] Biblioteca local de jogadas por categoria, guardar, atualizar, duplicar, abrir e eliminar (até 50 exercícios)\n- [ ] Biblioteca sincronizada com treinos, exercícios estruturados e partilha multiutilizador
 
 ## Fase 2 — Dossiê técnico integral
 - [x] Clube/escalão/época editáveis localmente

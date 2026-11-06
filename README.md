@@ -7,13 +7,13 @@
 [![CI](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/workflows/quality.yml/badge.svg)](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/workflows/quality.yml)
 
 ## O que já existe no protótipo
-- **Quadro tático:** 22 jogadores e bola, arrastamento com toque/rato, 4 formações, trajetórias/setas, desenho livre, ferramenta de correção, apagar e desfazer/refazer.
-- **Animação:** gravar sucessivos passos de uma jogada, aplicar/repor a posição de um passo e reproduzir movimentos entre posições.
-- **Partilha:** PNG do quadro e importação/exportação de jogadas JSON; guardar automaticamente no dispositivo.
+- **Quadro tático:** 22 jogadores e bola, arrastamento com toque/rato, 4 formações, setas e curvas com ponto central de correção, desenho livre, apagar e desfazer/refazer. Zoom 100–250% e modo Navegar para telemóvel.
+- **Animação:** gravar sucessivos passos, voltar a um passo anterior, corrigir posições e atualizar esse mesmo passo sem o duplicar; reproduzir movimentos entre posições.
+- **Biblioteca de exercícios:** guardar até 50 jogadas locais com categorias, abrir, atualizar, duplicar e eliminar. Cada exercício guarda uma cópia independente do quadro.\n- **Partilha:** PNG do quadro e importação/exportação de jogadas JSON; guardar automaticamente no dispositivo.
 - **Painel técnico:** navegação, dados do clube, plantel/disponibilidade, sessões, jogos, indicadores e exportação JSON do dossiê.
 - **Interface:** responsive, modo ecrã inteiro para apresentação em TV/quadro com navegador e identidade visual própria.
 
-**Limites atuais:** sem autenticação, backend, sincronização, relatório PDF, contas de treinador, exportação vídeo, ligacão a hardware específico, assinatura de release, testes de toque físico ou distribuição Windows. Dados de exemplo; dados no `localStorage` do dispositivo. Não introduzir dados reais de crianças antes da implementação de privacidade/segurança.
+**Limites atuais:** sem autenticação, backend, sincronização entre dispositivos, relatório PDF, contas de treinador, exportação vídeo, integração com hardware específico, assinatura de release, testes num aparelho físico ou distribuição Windows. Dados de exemplo; dados no `localStorage` do dispositivo. Não introduzir dados reais de crianças antes da implementação de privacidade/segurança.
 
 ## Código e execução
 ```text
@@ -42,10 +42,10 @@ pnpm install
 pnpm dev
 ```
 
-Testes e build: `pnpm run check`, `pnpm test`, `pnpm run build`.
+Testes e build: `pnpm run check`, `pnpm test`, `pnpm run build` e `pnpm run e2e` (requer Google Chrome no ambiente, ou ajustar canal Playwright). Os testes de navegador verificam movimento de jogadores, curvas corrigíveis, atualização de passos, biblioteca e comportamento responsivo. **Não substituem testes num Android físico.**
 
 ### Android
-O workflow [Android - build debug APK](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/workflows/android-apk.yml) prepara um Android temporário via Capacitor, compila e publica `campolab-android-debug-apk` nos artefactos da execução. **É APK de desenvolvimento**, não uma versão assinada para lojas. Não é instalado Android SDK na VPS.
+Para a última APK debug que inclui a biblioteca, consultar a execução [#42270261244](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/runs/42270261244). O workflow [Android - build debug APK](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/workflows/android-apk.yml) prepara um Android temporário via Capacitor, compila e publica `campolab-android-debug-apk` nos artefactos da execução. **É APK de desenvolvimento**, não uma versão assinada para lojas. Não é instalado Android SDK na VPS.
 
 ### Windows e website
 O website usa o mesmo código `src/` e será ligado a uma API própria numa fase posterior. O Windows está planeado com Tauri v2 e runners Windows; **ainda não existe instalador**.
