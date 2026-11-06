@@ -2,7 +2,7 @@ export type Point = { x: number; y: number };
 export type Side = 'casa' | 'fora';
 export type Formation = '4-3-3' | '4-4-2' | '3-5-2' | '4-2-3-1';
 export type Player = { id: string; team: Side; number: number; name: string; x: number; y: number };
-export type TacticalArrow = { id: string; start: Point; end: Point; color: string };
+export type TacticalArrow = { id: string; start: Point; end: Point; control?: Point; color: string };
 export type TacticalStroke = { id: string; points: number[]; color: string };
 export type TacticalFrame = { id: string; name: string; playerPositions: Record<string, Point>; ball: Point };
 export type Board = {
@@ -75,6 +75,9 @@ export function interpolateFrames(a: TacticalFrame, b: TacticalFrame, progress: 
   return { playerPositions: positions, ball: lerpPoint(a.ball, b.ball, progress) };
 }
 
+const finitePoint = (point: unknown): point is Point => !!point && typeof point === 'object'
+  && Number.isFinite((point as Point).x) && Number.isFinite((point as Point).y);
+
 export function isBoard(value: unknown): value is Board {
   if (!value || typeof value !== 'object') return false;
   const data = value as Partial<Board>;
@@ -83,7 +86,17 @@ export function isBoard(value: unknown): value is Board {
     && data.players.every(p => typeof p?.id === 'string' && Number.isFinite(p.x) && Number.isFinite(p.y))
     && !!data.ball && Number.isFinite(data.ball.x) && Number.isFinite(data.ball.y)
     && Array.isArray(data.arrows) && Array.isArray(data.strokes) && Array.isArray(data.frames)
-    && data.arrows.length < 1000 && data.strokes.length < 1000 && data.frames.length < 100;
+    && data.arrows.length < 1000 && data.strokes.length < 1000 && data.frames.length < 100
+    && data.arrows.every(arrow => !!arrow && typeof arrow.id === 'string' && typeof arrow.color === 'string'
+      && finitePoint(arrow.start) && finitePoint(arrow.end)
+      && (arrow.control === undefined || finitePoint(arrow.control)))
+    && data.strokes.every(stroke => !!stroke && typeof stroke.id === 'string' && typeof stroke.color === 'string'
+      && Array.isArray(stroke.points) && stroke.points.length <= 30000
+      && stroke.points.every(value => Number.isFinite(value)))
+    && data.frames.every(frame => !!frame && typeof frame.id === 'string'
+      && typeof frame.name === 'string' && finitePoint(frame.ball)
+      && !!frame.playerPositions && typeof frame.playerPositions === 'object'
+      && data.players!.every(player => finitePoint(frame.playerPositions[player.id])));
 }
 
 export const demoDossier: Dossier = {
