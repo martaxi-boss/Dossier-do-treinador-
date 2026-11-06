@@ -281,3 +281,34 @@ td strong { color: #1d3439; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
+
+/* Reusable tactical exercise library */
+.library-section { border: 1px solid var(--border); border-radius: var(--radius); background: #fff; padding: 23px; margin-bottom: 17px; }
+.library-heading { display: flex; justify-content: space-between; gap: 16px; align-items: center; flex-wrap: wrap; }
+.library-heading h3 { margin: 0 0 9px; }
+.library-heading .muted { max-width: 560px; }
+.library-actions { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; margin-top: 18px; }
+.library-actions .labelled-input { min-width: 170px; max-width: 240px; flex: 1 1 170px; }
+.library-actions .button-primary, .library-actions .button-subtle { align-self: end; }
+.library-browser { margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--border); }
+.library-browser > .labelled-input { max-width: 360px; }
+.library-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; margin-top: 17px; }
+.library-entry { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 12px; padding: 15px; border: 1px solid #e2eae5; border-radius: 13px; background: #f9fbf9; }
+.library-entry.active { border-color: #81b47f; background: #f2f9ed; }
+.exercise-icon { background: #e8f3e4; color: #4d8666; width: 36px; height: 36px; display: grid; place-items: center; flex: none; border-radius: 10px; }
+.exercise-description { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 5px; }
+.exercise-description strong { font-size: 12px; line-height: 1.3; overflow-wrap: anywhere; }
+.exercise-description small { font-size: 10px; color: #789185; }
+.exercise-description span { font-size: 10px; color: #7c8b85; }
+.exercise-buttons { display: flex; gap: 6px; flex: 1 0 100%; justify-content: flex-end; margin-top: 6px; }
+.exercise-buttons .button-subtle { min-height: 36px; padding: 7px 12px; }
+.exercise-buttons .icon-button { width: 36px; height: 36px; }
+@media (max-width: 920px) {
+  .library-cards { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  .library-section { padding: 15px; }
+  .library-heading > .button-subtle { width: 100%; }
+  .library-actions .labelled-input { min-width: 100%; max-width: 100%; }
+  .library-actions button { flex: 1 1 150px; }
+}
