@@ -3,22 +3,29 @@ import { Arrow, Circle, Group, Layer, Line, Rect, Stage, Text } from 'react-konv
 import type Konva from 'konva';
 import {
   ArrowUpRight, Brush, Eraser, Hand, ImageDown, Maximize2,
-  MousePointer2, Pause, Play, Plus, Redo2, RotateCcw,
-  Save, Undo2, Upload,
+  MousePointer2, Move, Pause, Play, Plus, Redo2, RotateCcw,
+  Save, Trash2, Undo2, Upload, Waves, ZoomIn, ZoomOut,
 } from 'lucide-react';
 import {
   Board, Point, FORMATIONS, Formation, PITCH, TacticalArrow, TacticalStroke,
   captureFrame, clampPoint, createBoard, interpolateFrames, uid,
 } from '../domain/model';
 import { downloadFile, importBoardFile, loadBoard, saveBoard } from '../services/local';
+import {
+  applyFrame as applyRecordedFrame, changeTrajectoryHandle, createTrajectory, deleteFrame, overwriteFrame,
+  trajectoryPoints,
+} from '../domain/editor';
+import type { ArrowHandle } from '../domain/editor';
 
-type Tool = 'mover' | 'seta' | 'caneta' | 'editar' | 'apagar';
-type Draft = { kind: 'seta'; start: Point; end: Point } | { kind: 'caneta'; points: number[] };
+type Tool = 'mover' | 'navegar' | 'seta' | 'curva' | 'caneta' | 'editar' | 'apagar';
+type Draft = { kind: 'seta' | 'curva'; start: Point; end: Point } | { kind: 'caneta'; points: number[] };
 type Preview = ReturnType<typeof interpolateFrames>;
 
 const TOOLS: { id: Tool; label: string; icon: typeof Hand }[] = [
   { id: 'mover', label: 'Mover', icon: Hand },
+  { id: 'navegar', label: 'Navegar', icon: Move },
   { id: 'seta', label: 'Movimento', icon: ArrowUpRight },
+  { id: 'curva', label: 'Curva', icon: Waves },
   { id: 'caneta', label: 'Desenhar', icon: Brush },
   { id: 'editar', label: 'Corrigir', icon: MousePointer2 },
   { id: 'apagar', label: 'Apagar', icon: Eraser },
@@ -55,28 +62,42 @@ export default function TacticalBoard() {
   const [undoStack, setUndoStack] = useState<Board[]>([]);
   const [redoStack, setRedoStack] = useState<Board[]>([]);
   const [tool, setTool] = useState<Tool>('mover');
-  const [width, setWidth] = useState(INITIAL_WIDTH);
+  const [baseWidth, setBaseWidth] = useState(INITIAL_WIDTH);
+  const [zoom, setZoom] = useState(1);
+  const width = Math.round(baseWidth * zoom);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [selectedArrow, setSelectedArrow] = useState<string | null>(null);
+  const [draggingArrow, setDraggingArrow] = useState<TacticalArrow | null>(null);
+  const [selectedFrame, setSelectedFrame] = useState<number | null>(null);
   const [inkColor, setInkColor] = useState('#f3bd4b');
   const [playing, setPlaying] = useState(false);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [notice, setNotice] = useState('Arrasta jogadores e a bola. Guarda dois passos para animar a jogada.');
   const stage = useRef<Konva.Stage>(null);
-  const boardContainer = useRef<HTMLDivElement>(null);
+  const scrollContainer = useRef<HTMLDivElement>(null);
   const fullscreenTarget = useRef<HTMLDivElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const draftRef = useRef<Draft | null>(null);
 
   useEffect(() => { saveBoard(board); }, [board]);
   useEffect(() => {
-    const target = boardContainer.current;
+    const target = scrollContainer.current;
     if (!target) return;
-    const update = () => setWidth(Math.max(780, target.getBoundingClientRect().width));
+    const update = () => {
+      const inFullscreen = document.fullscreenElement === fullscreenTarget.current;
+      const maxFullscreenWidth = inFullscreen
+        ? (window.innerHeight - 80) * (PITCH.width / PITCH.height)
+        : Infinity;
+      setBaseWidth(Math.max(300, Math.floor(Math.min(target.getBoundingClientRect().width, maxFullscreenWidth))));
+    };
     update();
     const observer = new ResizeObserver(update);
     observer.observe(target);
-    return () => observer.disconnect();
+    document.addEventListener('fullscreenchange', update);
+    return () => {
+      observer.disconnect();
+      document.removeEventListener('fullscreenchange', update);
+    };
   }, []);
 
   useEffect(() => {
@@ -104,6 +125,7 @@ export default function TacticalBoard() {
   const commit = (next: Board) => {
     setUndoStack(history => [...history.slice(-49), board]);
     setRedoStack([]);
+    setPreview(null);
     setBoard(next);
   };
   const undo = () => {
@@ -140,12 +162,12 @@ export default function TacticalBoard() {
     return clampPoint({ x: point.x / s, y: point.y / s });
   };
   const startDrawing = () => {
-    if (playing || (tool !== 'seta' && tool !== 'caneta')) return;
+    if (playing || (tool !== 'seta' && tool !== 'curva' && tool !== 'caneta')) return;
     const p = pointer();
     if (!p) return;
-    const next: Draft = tool === 'seta'
-      ? { kind: 'seta', start: p, end: p }
-      : { kind: 'caneta', points: [p.x, p.y] };
+    const next: Draft = tool === 'caneta'
+      ? { kind: 'caneta', points: [p.x, p.y] }
+      : { kind: tool === 'curva' ? 'curva' : 'seta', start: p, end: p };
     draftRef.current = next;
     setDraft(next);
   };
@@ -154,9 +176,9 @@ export default function TacticalBoard() {
     if (!current || playing) return;
     const p = pointer();
     if (!p) return;
-    const next: Draft = current.kind === 'seta'
-      ? { ...current, end: p }
-      : { ...current, points: [...current.points, p.x, p.y] };
+    const next: Draft = current.kind === 'caneta'
+      ? { ...current, points: [...current.points, p.x, p.y] }
+      : { ...current, end: p };
     draftRef.current = next;
     setDraft(next);
   };
@@ -165,24 +187,23 @@ export default function TacticalBoard() {
     draftRef.current = null;
     setDraft(null);
     if (!current || playing) return;
-    if (current.kind === 'seta') {
+    if (current.kind !== 'caneta') {
       const distance = Math.hypot(current.end.x - current.start.x, current.end.y - current.start.y);
       if (distance < 12) return;
-      const nextArrow: TacticalArrow = { id: uid(), start: current.start, end: current.end, color: inkColor };
+      const nextArrow = createTrajectory(current.start, current.end, inkColor, current.kind === 'curva');
       commit({ ...board, arrows: [...board.arrows, nextArrow] });
       setSelectedArrow(nextArrow.id);
       setTool('editar');
-      setNotice('Movimento criado. Em Corrigir, arrasta uma das duas extremidades.');
+      setNotice('Trajetória criada. Em Corrigir, arrasta as extremidades e o ponto central das curvas.');
     } else if (current.points.length > 5) {
       const nextStroke: TacticalStroke = { id: uid(), color: inkColor, points: current.points };
       commit({ ...board, strokes: [...board.strokes, nextStroke] });
     }
   };
-  const updateArrow = (arrow: TacticalArrow, point: 'start' | 'end', p: Point) => {
-    commit({
-      ...board,
-      arrows: board.arrows.map(item => item.id === arrow.id ? { ...item, [point]: clampPoint(p) } : item),
-    });
+  const updateArrow = (arrow: TacticalArrow, point: ArrowHandle, p: Point) => {
+    const changed = changeTrajectoryHandle(arrow, point, p);
+    commit({ ...board, arrows: board.arrows.map(item => item.id === arrow.id ? changed : item) });
+    setDraggingArrow(null);
   };
   const handleArrowClick = (id: string) => {
     if (tool === 'apagar') {
@@ -203,17 +224,19 @@ export default function TacticalBoard() {
   const recordFrame = () => {
     if (board.frames.length >= 20) { setNotice('Máximo de 20 passos nesta versão.'); return; }
     commit({ ...board, frames: [...board.frames, captureFrame(board, 'Passo ' + (board.frames.length + 1))] });
+    setSelectedFrame(board.frames.length);
     setNotice('Passo gravado. Move os jogadores e grava o passo seguinte.');
   };
   const applyFrame = (index: number) => {
     if (playing) return;
-    const frame = board.frames[index];
-    commit({
-      ...board,
-      ball: { ...frame.ball },
-      players: board.players.map(player => ({ ...player, ...(frame.playerPositions[player.id] || {}) })),
-    });
-    setPreview(null);
+    commit(applyRecordedFrame(board, index));
+    setSelectedFrame(index);
+    setNotice('Passo carregado. Se alterares posições, usa Atualizar passo para guardar a correção.');
+  };
+  const updateFrame = () => {
+    if (selectedFrame === null || playing) return;
+    commit(overwriteFrame(board, selectedFrame));
+    setNotice('Passo atualizado com as posições corrigidas, sem duplicar a sequência.');
   };
   const togglePlay = () => {
     if (playing) { setPlaying(false); setPreview(null); return; }
@@ -221,10 +244,11 @@ export default function TacticalBoard() {
     setPreview(null);
     setPlaying(true);
   };
-  const removeLastFrame = () => {
-    if (!board.frames.length || playing) return;
-    commit({ ...board, frames: board.frames.slice(0, -1) });
-    setPreview(null);
+  const removeSelectedFrame = () => {
+    if (selectedFrame === null || playing) return;
+    commit(deleteFrame(board, selectedFrame));
+    setSelectedFrame(null);
+    setNotice('Passo eliminado. Podes desfazer para o recuperar.');
   };
   const exportJSON = () => downloadFile('jogada-campolab.json', JSON.stringify(board, null, 2), 'application/json');
   const exportPNG = () => {
@@ -239,7 +263,9 @@ export default function TacticalBoard() {
     try {
       const imported = await importBoardFile(file);
       commit(imported);
-      setPreview(null);
+      setSelectedFrame(null);
+      setSelectedArrow(null);
+      setDraggingArrow(null);
       setNotice('Jogada importada e guardada neste dispositivo.');
     } catch (error) {
       setNotice(error instanceof Error ? error.message : 'Não foi possível importar o ficheiro.');
@@ -259,7 +285,7 @@ export default function TacticalBoard() {
       <div>
         <p className="eyebrow">ESTÚDIO TÁTICO / VERSÃO EXPERIMENTAL</p>
         <h2>Quadro tático interativo</h2>
-        <p className="muted">Desenha, corrige e apresenta movimentos com o dedo, rato ou caneta.</p>
+        <p className="muted">Arrasta jogadores, desenha movimentos curvos e corrige cada passo com o dedo, rato ou caneta.</p>
       </div>
       <span className="status-pill"><span className="status-dot" /> Guardado no dispositivo</span>
     </div>
@@ -284,6 +310,9 @@ export default function TacticalBoard() {
         </button>)}
       </div>
       <div className="tool-group compact">
+        <button type="button" className="icon-button" title="Diminuir ampliação" aria-label="Diminuir ampliação" disabled={zoom <= 1} onClick={() => setZoom(value => Math.max(1, +(value - .25).toFixed(2)))}><ZoomOut size={18} /></button>
+        <button type="button" className="zoom-label" title="Repor tamanho automático" aria-label="Repor tamanho automático" onClick={() => setZoom(1)}>{Math.round(zoom * 100)}%</button>
+        <button type="button" className="icon-button" title="Ampliar campo" aria-label="Ampliar campo" disabled={zoom >= 2.5} onClick={() => setZoom(value => Math.min(2.5, +(value + .25).toFixed(2)))}><ZoomIn size={18} /></button>
         <button type="button" className="icon-button" title="Desfazer (Ctrl+Z)" aria-label="Desfazer" disabled={!undoStack.length || playing} onClick={undo}><Undo2 size={18} /></button>
         <button type="button" className="icon-button" title="Refazer (Ctrl+Shift+Z)" aria-label="Refazer" disabled={!redoStack.length || playing} onClick={redo}><Redo2 size={18} /></button>
         {['#f3bd4b', '#ffffff', '#5dd4f0', '#f4728b'].map(color =>
@@ -293,8 +322,8 @@ export default function TacticalBoard() {
       </div>
     </div>
     <div className="pitch-shell" ref={fullscreenTarget}>
-      <div className="board-scroll">
-        <div className="board-canvas" ref={boardContainer}>
+      <div className="board-scroll" ref={scrollContainer}>
+        <div className={'board-canvas ' + (tool === 'navegar' ? 'allow-pan' : '')} style={{ width }}>
           <Stage ref={stage} width={width} height={width * PITCH.height / PITCH.width}
             scaleX={width / PITCH.width} scaleY={width / PITCH.width}
             onMouseDown={startDrawing} onTouchStart={startDrawing}
@@ -306,17 +335,23 @@ export default function TacticalBoard() {
               {board.strokes.map(stroke => <Line key={stroke.id} points={stroke.points} stroke={stroke.color}
                 strokeWidth={5} opacity={.92} lineCap="round" lineJoin="round"
                 hitStrokeWidth={22} onClick={() => handleStrokeClick(stroke.id)} onTap={() => handleStrokeClick(stroke.id)} />)}
-              {board.arrows.map(arrow => <Group key={arrow.id}>
-                <Arrow points={[arrow.start.x, arrow.start.y, arrow.end.x, arrow.end.y]}
-                  stroke={arrow.color} fill={arrow.color} strokeWidth={selectedArrow === arrow.id ? 7 : 5}
-                  pointerWidth={17} pointerLength={18} hitStrokeWidth={27} opacity={.97}
-                  onClick={() => handleArrowClick(arrow.id)} onTap={() => handleArrowClick(arrow.id)} />
-                {selectedArrow === arrow.id && tool === 'editar' && !playing && (['start', 'end'] as const).map(point => (
-                  <Circle key={point} x={arrow[point].x} y={arrow[point].y} radius={12} fill="#fff"
-                    stroke={arrow.color} strokeWidth={4} draggable
-                    onDragEnd={e => updateArrow(arrow, point, e.target.position())} />
-                ))}
-              </Group>)}
+              {board.arrows.map(arrow => {
+                const visual = draggingArrow?.id === arrow.id ? draggingArrow : arrow;
+                const handles: ArrowHandle[] = visual.control ? ['start', 'control', 'end'] : ['start', 'end'];
+                return <Group key={arrow.id}>
+                  <Arrow points={trajectoryPoints(visual)} tension={visual.control ? .5 : 0}
+                    stroke={visual.color} fill={visual.color} strokeWidth={selectedArrow === arrow.id ? 7 : 5}
+                    pointerWidth={17} pointerLength={18} hitStrokeWidth={30} opacity={.97}
+                    onClick={() => handleArrowClick(arrow.id)} onTap={() => handleArrowClick(arrow.id)} />
+                  {selectedArrow === arrow.id && tool === 'editar' && !playing && handles.map(point => (
+                    <Circle key={point} x={visual[point]!.x} y={visual[point]!.y}
+                      radius={point === 'control' ? 13 : 12} fill={point === 'control' ? '#f3bd4b' : '#fff'}
+                      stroke={arrow.color} strokeWidth={4} hitStrokeWidth={20} draggable
+                      onDragMove={event => setDraggingArrow(changeTrajectoryHandle(arrow, point, event.target.position()))}
+                      onDragEnd={event => updateArrow(arrow, point, event.target.position())} />
+                  ))}
+                </Group>;
+              })}
               {board.players.map(player => {
                 const position = preview?.playerPositions[player.id] || player;
                 const home = player.team === 'casa';
@@ -345,7 +380,8 @@ export default function TacticalBoard() {
                 <Circle radius={13} fill="#ffffff" stroke="#192630" strokeWidth={3} shadowBlur={6} shadowOpacity={.4} />
                 <Circle radius={5} fill="#18252f" listening={false} />
               </Group>
-              {draft?.kind === 'seta' && <Arrow points={[draft.start.x, draft.start.y, draft.end.x, draft.end.y]}
+              {draft && draft.kind !== 'caneta' && <Arrow points={trajectoryPoints(createTrajectory(draft.start, draft.end, inkColor, draft.kind === 'curva'))}
+                tension={draft.kind === 'curva' ? .5 : 0}
                 stroke={inkColor} fill={inkColor} strokeWidth={5} pointerLength={18} pointerWidth={18} listening={false} />}
               {draft?.kind === 'caneta' && <Line points={draft.points} stroke={inkColor}
                 strokeWidth={5} lineCap="round" lineJoin="round" listening={false} />}
@@ -355,22 +391,23 @@ export default function TacticalBoard() {
       </div>
       <button type="button" className="fullscreen-btn" onClick={fullscreen} title="Apresentar em ecrã inteiro"><Maximize2 size={17} /> Ecrã inteiro</button>
     </div>
-    <p className="helper-text" role="status">{notice}</p>
+    <p className="helper-text" role="status">{notice} {zoom > 1 ? 'Usa Navegar e desliza o campo para a esquerda ou direita.' : 'Ampliar permite trabalhar com maior precisão no telemóvel.'}</p>
     <div className="timeline-section">
       <div className="timeline-title">
         <div><p className="eyebrow">MOVIMENTO ANIMADO</p><h3>Sequência de passos</h3></div>
         <div className="timeline-actions">
           <button type="button" className="button-subtle" disabled={playing} onClick={recordFrame}><Plus size={17} /> Gravar passo</button>
+          <button type="button" className="button-subtle" disabled={playing || selectedFrame === null} onClick={updateFrame}><RotateCcw size={17} /> Atualizar passo</button>
           <button type="button" className="button-primary" onClick={togglePlay}>{playing ? <Pause size={17} /> : <Play size={17} />}{playing ? 'Parar' : 'Reproduzir'}</button>
         </div>
       </div>
-      <p className="muted small">Grava a posição inicial, arrasta os jogadores para a posição seguinte e grava outro passo. Assim podes mostrar os movimentos.</p>
+      <p className="muted small">Grava uma posição inicial e outra final. Para corrigir um passo, seleciona-o, move os jogadores e toca em Atualizar passo. Usa Curva e Corrigir para ajustar trajetórias.</p>
       <div className="frame-list">
-        {board.frames.map((frame, index) => <button className="frame-chip" disabled={playing} type="button" key={frame.id} onClick={() => applyFrame(index)}>
+        {board.frames.map((frame, index) => <button className={'frame-chip ' + (selectedFrame === index ? 'active' : '')} aria-pressed={selectedFrame === index} disabled={playing} type="button" key={frame.id} onClick={() => applyFrame(index)}>
           <span className="frame-number">{index + 1}</span><span>{frame.name}</span>
         </button>)}
         {!board.frames.length && <span className="empty-frames">Ainda não existem passos gravados.</span>}
-        {!!board.frames.length && <button type="button" className="frame-remove" onClick={removeLastFrame} disabled={playing} title="Remover o último passo"><RotateCcw size={15} /> Remover último</button>}
+        {selectedFrame !== null && <button type="button" className="frame-remove" onClick={removeSelectedFrame} disabled={playing} title="Eliminar passo selecionado"><Trash2 size={15} /> Eliminar passo</button>}
       </div>
     </div>
     <div className="export-bar">
