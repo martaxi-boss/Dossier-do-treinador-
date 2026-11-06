@@ -6,7 +6,7 @@
 - [x] Código de domínio separado da interface
 - [x] GitHub Actions para CI e APK de testes
 - [x] Compilação web, TS e testes automáticos PASS ([#42266647559](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/runs/42266647559))
-- [ ] Validar compilação APK com artefacto e ID
+- [x] Compilação Android debug PASS e artefacto publicado ([#42266875024](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/runs/42266875024), artefacto `campolab-android-debug-apk`)
 - [ ] Instalar APK num Android físico e testar gestos táteis
 
 ## Fase 1 — Estúdio tático de qualidade

@@ -2,7 +2,7 @@
 
 **Dossiê técnico de futebol/futsal** com quadro tático interativo. Um só frontend com destino a **web, Android (APK)** e, posteriormente, **Windows**. Código original, sem copiar a aplicação comercial vista em fotografias.
 
-**Estado (6 novembro 2026):** primeiro protótipo funcional no código; build web e testes automáticos PASS. APK de testes em certificação no GitHub Actions. Não representa ainda uma versão comercial pronta.
+**Estado (6 novembro 2026):** primeiro protótipo funcional no código; build web e testes automáticos PASS. APK Android de testes compilada com sucesso na execução [#42266875024](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/runs/42266875024). Falta instalação e ensaio tátil em equipamento real. Não representa ainda uma versão comercial pronta.
 
 [![CI](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/workflows/quality.yml/badge.svg)](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/workflows/quality.yml)
 
