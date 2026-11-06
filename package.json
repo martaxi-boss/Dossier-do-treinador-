@@ -13,7 +13,8 @@
     "check": "tsc --noEmit -p tsconfig.app.json",
     "test": "vitest run",
     "android:add": "cap add android",
-    "android:sync": "npm run build && cap sync android"
+    "android:sync": "npm run build && cap sync android",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.0",
@@ -31,7 +32,8 @@
     "@vitejs/plugin-react": "5.1.4",
     "typescript": "^5.9.3",
     "vite": "^7.2.0",
-    "vitest": "^4.0.0"
+    "vitest": "^4.0.0",
+    "@playwright/test": "^1.56.0"
   },
   "packageManager": "pnpm@10.20.0"
 }

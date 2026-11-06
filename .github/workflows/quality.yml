@@ -26,6 +26,16 @@ jobs:
         run: pnpm test
       - name: Production web build
         run: pnpm run build
+      - name: Install Chromium for browser interaction tests
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Browser interaction smoke tests (desktop and mobile)
+        run: pnpm run e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: campolab-browser-failure-evidence
+          path: test-results/
+          if-no-files-found: ignore
       - uses: actions/upload-artifact@v4
         with:
           name: campolab-web-build
