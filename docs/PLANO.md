@@ -5,8 +5,8 @@
 - [x] Arquitetura web, Android, Windows
 - [x] Código de domínio separado da interface
 - [x] GitHub Actions para CI e APK de testes
-- [x] Compilação web, TS e testes automáticos PASS ([#42266647559](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/runs/42266647559))
-- [x] Compilação Android debug PASS e artefacto publicado ([#42266875024](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/runs/42266875024), artefacto `campolab-android-debug-apk`)
+- [x] Compilação web, TS e testes automáticos PASS ([#42271193221](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/runs/42271193221))
+- [x] Compilação Android debug PASS e artefacto publicado ([#42270898455](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/runs/42270898455), artefacto `campolab-android-debug-apk`)
 - [ ] Instalar APK num Android físico e testar gestos táteis
 
 ## Fase 1 — Estúdio tático de qualidade
@@ -17,7 +17,7 @@
 - [x] Gravar e reproduzir passos de movimento
 - [x] Exportar PNG e apresentar em ecrã inteiro
 - [x] Testes unitários de geometria, formação e interpolação
-- [x] Testes automatizados Chrome: arrastar, editar curvas, corrigir passos, zoom e biblioteca ([#42270087686](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/runs/42270087686), 4 testes, extensão em validação)\n- [ ] Certificar testes de caneta ativa em hardware físico
+- [x] 6 testes E2E Chrome: arrastar por rato e toque simulado, editar curvas, corrigir passos, zoom e biblioteca ([#42271193221](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/runs/42271193221))\n- [ ] Certificar testes de caneta ativa em hardware físico
 - [ ] Testes reais em smartphone, tablet e monitor grande
 - [x] Curvas editáveis com ponto de controlo, zoom e navegação no campo\n- [ ] Trajetórias com múltiplos nós, áreas táticas e medição/distâncias
 - [x] Biblioteca local de jogadas por categoria, guardar, atualizar, duplicar, abrir e eliminar (até 50 exercícios)\n- [ ] Biblioteca sincronizada com treinos, exercícios estruturados e partilha multiutilizador

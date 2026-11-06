@@ -2,7 +2,7 @@
 
 **Dossiê técnico de futebol/futsal** com quadro tático interativo. Um só frontend com destino a **web, Android (APK)** e, posteriormente, **Windows**. Código original, sem copiar a aplicação comercial vista em fotografias.
 
-**Estado (6 novembro 2026):** primeiro protótipo funcional no código; build web e testes automáticos PASS. APK Android de testes compilada com sucesso na execução [#42266875024](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/runs/42266875024). Falta instalação e ensaio tátil em equipamento real. Não representa ainda uma versão comercial pronta.
+**Estado (6 novembro 2026):** primeiro protótipo funcional no código; build web, 12 testes unitários e 6 testes de interação no navegador PASS ([#42271193221](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/runs/42271193221)). APK Android de testes compilada com sucesso na execução [#42270898455](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/runs/42270898455). Falta instalação e ensaio tátil em equipamento real. Não representa ainda uma versão comercial pronta.
 
 [![CI](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/workflows/quality.yml/badge.svg)](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/workflows/quality.yml)
 
@@ -50,10 +50,10 @@ pnpm install
 pnpm dev
 ```
 
-Testes e build: `pnpm run check`, `pnpm test`, `pnpm run build` e `pnpm run e2e` (requer Google Chrome no ambiente, ou ajustar canal Playwright). Os testes de navegador verificam movimento de jogadores, curvas corrigíveis, atualização de passos, biblioteca e comportamento responsivo. **Não substituem testes num Android físico.**
+Testes e build: `pnpm run check`, `pnpm test`, `pnpm run build` e `pnpm run e2e` (requer Google Chrome no ambiente, ou ajustar canal Playwright). Os testes de navegador verificam movimento de jogadores, curvas corrigíveis, atualização de passos, biblioteca e comportamento responsivo. **Não substituem testes num Android físico.** O toque foi testado por simulação no Chrome móvel, não num dispositivo real.
 
 ### Android
-Para a última APK debug que inclui a biblioteca, consultar a execução [#42270261244](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/runs/42270261244). O workflow [Android - build debug APK](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/workflows/android-apk.yml) prepara um Android temporário via Capacitor, compila e publica `campolab-android-debug-apk` nos artefactos da execução. **É APK de desenvolvimento**, não uma versão assinada para lojas. Não é instalado Android SDK na VPS.
+Para a última APK debug que inclui a biblioteca, consultar a execução [#42270898455](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/runs/42270898455). O workflow [Android - build debug APK](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/workflows/android-apk.yml) prepara um Android temporário via Capacitor, compila e publica `campolab-android-debug-apk` nos artefactos da execução. **É APK de desenvolvimento**, não uma versão assinada para lojas. Não é instalado Android SDK na VPS.
 
 ### Windows e website
 O website usa o mesmo código `src/` e será ligado a uma API própria numa fase posterior. O Windows está planeado com Tauri v2 e runners Windows; **ainda não existe instalador**.
@@ -65,3 +65,10 @@ Um repositório independente e, caso seja instalado na VPS no futuro, uma pasta 
 [React Konva](https://github.com/konvajs/react-konva), [Konva](https://github.com/konvajs/konva) e [Capacitor](https://github.com/ionic-team/capacitor) são dependências de código aberto com licença MIT. [Calcio Chigi](https://github.com/marcocipriani/calcio-chigi) e [Soccer Tactics Board](https://github.com/yynakayama/soccer-tactics-board) foram estudados como referências de funcionalidades, **não copiados**.
 
 O repositório é público, mas **não foi concedida licença de redistribuição do código original**; essa decisão é do proprietário. Ver [arquitetura](docs/ARQUITETURA.md), [plano](docs/PLANO.md), [quadros interativos](docs/QUADRO-INTERATIVO.md), [critérios de qualidade](docs/CRITERIOS-DE-QUALIDADE.md) e [pesquisa](docs/REFERENCIAS_OPEN_SOURCE.md).
+
+## Resultados da certificação automatizada
+- **Web/TypeScript/Vitest/Chrome:** PASS em [#42271193221](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/runs/42271193221) (12 testes de domínio e 6 testes end-to-end).
+- **APK Android debug:** PASS em [#42270898455](https://github.com/martaxi-boss/Dossier-do-treinador-/actions/runs/42270898455), artefacto `campolab-android-debug-apk`.
+- **Pendente:** instalar a APK num Android físico, verificar caneta/quadro interativo, segurança, autenticação, sincronização e empacotamento Windows.
+
+Consultar o [relatório da fase](docs/FASE-1-RELATORIO.md).
