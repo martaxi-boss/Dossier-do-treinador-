@@ -74,6 +74,23 @@ test('selected animation step can be replaced instead of duplicated', async ({ p
   expect((await getSavedBoard(page))?.frames).toHaveLength(2);
 });
 
+test('exercise library saves, updates, duplicates and reopens independent boards', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Estúdio tático', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Nome da jogada' }).fill('Pressão alta');
+  await page.getByRole('button', { name: 'Guardar como novo' }).click();
+  await expect.poll(async () => page.evaluate(() => JSON.parse(localStorage.getItem('campolab.exercises.v1') || '[]').length)).toBe(1);
+  await expect(page.getByText('Pressão alta', { exact: true }).last()).toBeVisible();
+  await page.getByRole('textbox', { name: 'Nome da jogada' }).fill('Pressão alta revista');
+  await page.getByRole('button', { name: 'Atualizar exercício' }).click();
+  await expect.poll(async () => page.evaluate(() => JSON.parse(localStorage.getItem('campolab.exercises.v1') || '[]')[0]?.title)).toBe('Pressão alta revista');
+  await page.getByRole('button', { name: 'Duplicar exercício Pressão alta revista' }).click();
+  await expect.poll(async () => page.evaluate(() => JSON.parse(localStorage.getItem('campolab.exercises.v1') || '[]').length)).toBe(2);
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByRole('button', { name: 'Abrir exercício Pressão alta revista' }).click();
+  await expect(page.getByRole('textbox', { name: 'Nome da jogada' })).toHaveValue('Pressão alta revista');
+});
+
 test.describe('smartphone layout', () => {
   test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   test('the pitch can zoom without overflowing the page and enables horizontal navigation', async ({ page }) => {
