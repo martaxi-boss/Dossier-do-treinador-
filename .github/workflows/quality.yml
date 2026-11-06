@@ -14,17 +14,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install project dependencies
-        run: npm install --no-audit --no-fund
+      - name: Install isolated project dependencies
+        run: pnpm install --no-frozen-lockfile
       - name: Static TypeScript validation
-        run: npm run check
+        run: pnpm run check
       - name: Unit tests
-        run: npm test
+        run: pnpm test
       - name: Production web build
-        run: npm run build
+        run: pnpm run build
       - uses: actions/upload-artifact@v4
         with:
           name: campolab-web-build
