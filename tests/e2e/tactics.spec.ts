@@ -87,7 +87,7 @@ test('exercise library saves, updates, duplicates and reopens independent boards
   await page.getByRole('button', { name: 'Duplicar exercício Pressão alta revista' }).click();
   await expect.poll(async () => page.evaluate(() => JSON.parse(localStorage.getItem('campolab.exercises.v1') || '[]').length)).toBe(2);
   page.once('dialog', dialog => dialog.accept());
-  await page.getByRole('button', { name: 'Abrir exercício Pressão alta revista' }).click();
+  await page.getByRole('button', { name: 'Abrir exercício Pressão alta revista', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Nome da jogada' })).toHaveValue('Pressão alta revista');
 });
 
