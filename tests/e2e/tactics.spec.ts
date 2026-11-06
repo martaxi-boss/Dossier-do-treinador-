@@ -93,6 +93,25 @@ test('exercise library saves, updates, duplicates and reopens independent boards
 
 test.describe('smartphone layout', () => {
   test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  test('a real touch sequence drags a player and persists the corrected position', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Abrir menu' }).click();
+    await page.getByRole('button', { name: 'Estúdio tático', exact: true }).click();
+    await page.locator('.board-canvas').scrollIntoViewIfNeeded();
+    const from = await pointOnCanvas(page, 125, 325);
+    const to = await pointOnCanvas(page, 235, 325);
+    const touch = await page.context().newCDPSession(page);
+    const touchPoint = (x: number, y: number) => [{ x, y, radiusX: 9, radiusY: 9 }];
+    await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: touchPoint(from.x, from.y) });
+    for (let i = 1; i <= 10; i++) {
+      await touch.send('Input.dispatchTouchEvent', {
+        type: 'touchMove',
+        touchPoints: touchPoint(from.x + ((to.x - from.x) * i) / 10, from.y),
+      });
+    }
+    await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await expect.poll(async () => (await getSavedBoard(page))?.players.find(p => p.id === 'casa-1')?.x).toBeGreaterThan(195);
+  });
   test('the pitch can zoom without overflowing the page and enables horizontal navigation', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Abrir menu' }).click();
